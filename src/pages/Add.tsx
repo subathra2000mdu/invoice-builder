@@ -61,57 +61,59 @@ const handleDownloadPDF = async () => {
 
     try {
         const canvas = await html2canvas(element, {
-            scale: 2, // 2 is usually enough and prevents huge file sizes
+            scale: 3, // Higher scale for professional sharpness
             useCORS: true,
             backgroundColor: "#ffffff",
-            logging: false, // Clean up console
+            logging: false,
             onclone: (clonedDoc) => {
-                // --- FIX 1: Manually Inject Tailwind/Styles into the cloned document ---
+                // 1. Force Styles into the PDF (Fixes "Plain Text" issue)
                 const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
                 styles.forEach(style => {
                     clonedDoc.head.appendChild(style.cloneNode(true));
                 });
 
-                const toHide = clonedDoc.querySelectorAll('.action-hide');
-                toHide.forEach((el) => (el as HTMLElement).style.display = 'none');
-
-                // Ensure the container has a white background and proper padding for the PDF
+                // 2. Fix Layout Width (Crucial: Fixes "Ugly/Squeezed" issue)
                 const container = clonedDoc.querySelector('.max-w-6xl') as HTMLElement;
                 if (container) {
-                    container.style.backgroundColor = "#ffffff";
-                    container.style.padding = "40px"; // Give it some breathing room
+                    container.style.width = "1024px"; // Explicit desktop width
+                    container.style.maxWidth = "none";
+                    container.style.padding = "40px";
+                    container.style.margin = "0 auto";
                     
-                    // --- Footer Logic (Keep your existing footer code here) ---
+                    // Add your footer...
                     const footerDiv = clonedDoc.createElement('div');
                     footerDiv.style.marginTop = "50px";
                     footerDiv.style.paddingTop = "30px";
                     footerDiv.style.borderTop = "1px solid #e5e7eb";
                     footerDiv.innerHTML = `
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; font-family: sans-serif;">
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-family: sans-serif;">
+                            <div>
                                 <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; margin: 0;">Terms & Conditions</h3>
                                 <p style="color: #4b5563; font-size: 11px; margin: 0;">Please pay within 15 days of issue.</p>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="text-align: right;">
                                 <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; margin: 0;">Contact Support</h3>
-                                <p style="color: #4b5563; font-size: 11px; margin: 0;">Email: support@invoicebuilder.com</p>
+                                <p style="color: #4b5563; font-size: 11px; margin: 0;">support@invoicebuilder.com</p>
                             </div>
                         </div>
                     `;
                     container.appendChild(footerDiv);
                 }
 
-                // Convert Inputs to Text (Critical for showing the values in PDF)
-                const inputs = clonedDoc.querySelectorAll('input, textarea');
-                inputs.forEach(input => {
+                // 3. Convert Inputs to Text properly
+                clonedDoc.querySelectorAll('input, textarea').forEach(input => {
+                    const el = input as HTMLInputElement | HTMLTextAreaElement;
                     const div = clonedDoc.createElement('div');
-                    const inputEl = input as HTMLInputElement | HTMLTextAreaElement;
-                    div.innerText = inputEl.value;
-                    div.style.cssText = window.getComputedStyle(input).cssText;
+                    div.innerText = el.value;
+                    const computed = window.getComputedStyle(el);
+                    div.style.cssText = computed.cssText;
                     div.style.border = 'none';
-                    div.style.display = 'block';
+                    div.style.background = 'transparent';
                     input.parentNode?.replaceChild(div, input);
                 });
+
+                // 4. Hide UI buttons
+                clonedDoc.querySelectorAll('.action-hide').forEach(el => (el as HTMLElement).style.display = 'none');
             }
         });
 
@@ -128,6 +130,7 @@ const handleDownloadPDF = async () => {
         setIsGenerating(false);
     }
 };
+
 
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
