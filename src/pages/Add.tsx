@@ -54,74 +54,81 @@ const Add: React.FC = () => {
             generateNewInvoice();
         }
     };
+const handleDownloadPDF = async () => {
+    const element = invoiceRef.current;
+    if (!element || isGenerating) return;
+    setIsGenerating(true);
 
-    const handleDownloadPDF = async () => {
-        const element = invoiceRef.current;
-        if (!element || isGenerating) return;
-        setIsGenerating(true);
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2, // 2 is usually enough and prevents huge file sizes
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false, // Clean up console
+            onclone: (clonedDoc) => {
+                // --- FIX 1: Manually Inject Tailwind/Styles into the cloned document ---
+                const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'));
+                styles.forEach(style => {
+                    clonedDoc.head.appendChild(style.cloneNode(true));
+                });
 
-        try {
-            const canvas = await html2canvas(element, {
-                scale: 3,
-                useCORS: true,
-                backgroundColor: "#ffffff",
-                onclone: (clonedDoc) => {
-                    const toHide = clonedDoc.querySelectorAll('.action-hide');
-                    toHide.forEach((el) => (el as HTMLElement).style.display = 'none');
+                const toHide = clonedDoc.querySelectorAll('.action-hide');
+                toHide.forEach((el) => (el as HTMLElement).style.display = 'none');
 
-                    const container = clonedDoc.querySelector('.max-w-6xl');
-                    if (container) {
-                        const footerDiv = clonedDoc.createElement('div');
-                        footerDiv.style.marginTop = "50px";
-                        footerDiv.style.paddingTop = "30px";
-                        footerDiv.style.borderTop = "1px solid #e5e7eb";
-                        footerDiv.innerHTML = `
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; font-family: sans-serif;">
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Terms & Conditions</h3>
-                                    <p style="color: #4b5563; font-size: 11px; margin: 0;">Please pay within 15 days of issue.</p>
-                                    <p style="color: #4b5563; font-size: 11px; margin: 0;">Interest of 1.5% charged on late payments.</p>
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Contact Support</h3>
-                                    <p style="color: #4b5563; font-size: 11px; margin: 0;">Email: support@invoicebuilder.com</p>
-                                    <p style="color: #4b5563; font-size: 11px; margin: 0;">Phone: +1 (555) 0123-456</p>
-                                </div>
+                // Ensure the container has a white background and proper padding for the PDF
+                const container = clonedDoc.querySelector('.max-w-6xl') as HTMLElement;
+                if (container) {
+                    container.style.backgroundColor = "#ffffff";
+                    container.style.padding = "40px"; // Give it some breathing room
+                    
+                    // --- Footer Logic (Keep your existing footer code here) ---
+                    const footerDiv = clonedDoc.createElement('div');
+                    footerDiv.style.marginTop = "50px";
+                    footerDiv.style.paddingTop = "30px";
+                    footerDiv.style.borderTop = "1px solid #e5e7eb";
+                    footerDiv.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px; font-family: sans-serif;">
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; margin: 0;">Terms & Conditions</h3>
+                                <p style="color: #4b5563; font-size: 11px; margin: 0;">Please pay within 15 days of issue.</p>
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 15px; font-size: 10px; color: #9ca3af;">
-                                <p>© 2026 Invoice Builder. All rights reserved.</p>
-                                <p style="color: #0891b2; font-style: italic; font-weight: 600;">Thank you for your business!</p>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <h3 style="font-weight: bold; color: #374151; font-size: 11px; text-transform: uppercase; margin: 0;">Contact Support</h3>
+                                <p style="color: #4b5563; font-size: 11px; margin: 0;">Email: support@invoicebuilder.com</p>
                             </div>
-                        `;
-                        container.appendChild(footerDiv);
-                    }
-
-                    const inputs = clonedDoc.querySelectorAll('input, textarea');
-                    inputs.forEach(input => {
-                        const div = clonedDoc.createElement('div');
-                        div.innerText = (input as HTMLInputElement | HTMLTextAreaElement).value;
-                        div.style.cssText = window.getComputedStyle(input).cssText;
-                        div.style.border = 'none';
-                        div.style.backgroundColor = 'transparent';
-                        div.style.whiteSpace = 'pre-wrap';
-                        input.parentNode?.replaceChild(div, input);
-                    });
+                        </div>
+                    `;
+                    container.appendChild(footerDiv);
                 }
-            });
 
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                // Convert Inputs to Text (Critical for showing the values in PDF)
+                const inputs = clonedDoc.querySelectorAll('input, textarea');
+                inputs.forEach(input => {
+                    const div = clonedDoc.createElement('div');
+                    const inputEl = input as HTMLInputElement | HTMLTextAreaElement;
+                    div.innerText = inputEl.value;
+                    div.style.cssText = window.getComputedStyle(input).cssText;
+                    div.style.border = 'none';
+                    div.style.display = 'block';
+                    input.parentNode?.replaceChild(div, input);
+                });
+            }
+        });
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`${formData.invoiceNumber}.pdf`);
-        } catch (err) {
-            console.error("PDF Export Error:", err);
-        } finally {
-            setIsGenerating(false);
-        }
-    };
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`${formData.invoiceNumber || 'invoice'}.pdf`);
+    } catch (err) {
+        console.error("PDF Export Error:", err);
+    } finally {
+        setIsGenerating(false);
+    }
+};
+
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
