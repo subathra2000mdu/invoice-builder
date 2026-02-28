@@ -41,6 +41,7 @@ const Add: React.FC = () => {
         });
         setSubmittedData([]);
         setEditingId(null);
+        setError(null);
     };
 
     useEffect(() => { generateNewInvoice(); }, []);
@@ -127,6 +128,13 @@ const Add: React.FC = () => {
         if (id === 'phoneNumber') {
             if (value !== '' && !/^\d+$/.test(value)) return;
             if (value.length > 10) return;
+            
+            // Validation Logic: Show error if not exactly 10 digits
+            if (value.length > 0 && value.length < 10) {
+                setError("Phone number must be exactly 10 digits");
+            } else {
+                setError(null);
+            }
         }
         setFormData(prev => ({ ...prev, [id]: value }));
     };
@@ -139,6 +147,13 @@ const Add: React.FC = () => {
 
     const handleAction = (e: FormEvent) => {
         e.preventDefault();
+
+        // Submission Guard: Check phone length
+        if (formData.phoneNumber.length !== 10) {
+            setError("Phone number must be exactly 10 digits");
+            return;
+        }
+
         const qty = Number(formData.quantity) || 0;
         const rate = Number(formData.rate) || 0;
         const taxVal = (qty * rate * Number(formData.taxPercent || 0)) / 100;
@@ -153,62 +168,87 @@ const Add: React.FC = () => {
         setFormData(prev => ({ ...prev, item: '', quantity: '', rate: '', taxPercent: '' }));
     };
 
-    const labelStyle = "text-sm font-semibold text-gray-800 mb-1.5 block tracking-tight";
+    const labelStyle = "text-sm font-semibold text-black-800 mb-1.5 block  text-[16px]";
     const inputClass = "w-full bg-blue-50/30 border border-gray-100 rounded-lg px-4 py-3 outline-none text-gray-700 text-sm focus:ring-2 focus:ring-blue-700/10 transition";
+
 
     return (
         <div className="min-h-screen bg-blue-50/50 font-sans py-8 px-4 sm:px-6">
-            <div ref={invoiceRef} className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-10">
+            <div ref={invoiceRef} className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl border border-blue-100/50 p-6 sm:p-10">
                 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800">Invoice Builder</h2>
+                        <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Invoice Builder</h2>
                         <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest">{formData.invoiceNumber}</p>
                     </div>
                     <div className="flex gap-3 action-hide w-full sm:w-auto">
-                        <button onClick={handleReset} className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase transition shadow-md">Reset</button>
-                        <button onClick={() => window.history.back()} className="flex-1 sm:flex-none bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-bold text-xs uppercase transition shadow-md">Back</button>
+                        <button 
+  onClick={handleReset} 
+  className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95"
+>
+  Reset
+</button>
+<button onClick={() => window.history.back()} className="flex-1 sm:flex-none bg-orange-700 hover:bg-orange-800 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95">Back</button>
                     </div>
                 </div>
 
+                <hr className="border-t border-gray-200 mb-8" />
+
                 <form onSubmit={handleAction} className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div><label className={labelStyle}>Client Name</label><input id="name" value={formData.name} onChange={handleChange} className={inputClass} required /></div>
+                        <div><label className={labelStyle}>Client Name</label><input id="name" value={formData.name} onChange={handleChange} className={inputClass} required placeholder='Enter Name...' /></div>
                         <div><label className={labelStyle}>Invoice No</label><input value={formData.invoiceNumber} readOnly className={`${inputClass} bg-gray-50/50 text-gray-400 cursor-not-allowed`} /></div>
-                        <div><label className={labelStyle}>Phone Number</label><input id="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={inputClass} required /></div>
+                        
+                        {/* Phone Number Field with Error Message */}
+                        <div>
+                            <label className={labelStyle}>Phone Number</label>
+                            <input 
+                                id="phoneNumber" 
+                                value={formData.phoneNumber} 
+                                onChange={handleChange} 
+                                className={`${inputClass} ${error ? 'border-red-500 focus:ring-red-500/10' : 'focus:ring-blue-700/10'}`} 
+                                placeholder="1234567890" 
+                                required 
+                            />
+                            {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
+                        </div>
+
                         <div><label className={labelStyle}>Date</label><input value={todayDate} readOnly className={`${inputClass} bg-gray-50/50 text-gray-400 cursor-not-allowed`} /></div>
                     </div>
 
                     <div>
                         <label className={labelStyle}>Invoice Description</label>
-                        <textarea id="description" value={formData.description} onChange={handleChange} className={`${inputClass} h-16 resize-none`} />
+                        <textarea id="description" value={formData.description} onChange={handleChange} className={`${inputClass} h-16 resize-none`} placeholder="Add invoice notes..." />
                     </div>
 
-                    <div className="flex flex-wrap lg:flex-nowrap items-end gap-3 pt-6 border-t border-gray-100 action-hide bg-blue-50/10 p-4 rounded-xl">
+                    <div className="flex flex-wrap lg:flex-nowrap items-end gap-3 pt-8 border-t border-gray-100 action-hide bg-blue-50/10 p-4 rounded-xl">
                         <div className="w-full lg:flex-1"><label className={labelStyle}>Item Name</label><input id="item" placeholder="Enter Item" value={formData.item} onChange={handleChange} className={inputClass} /></div>
                         <div className="w-[80px]"><label className={labelStyle}>Qty</label><input id="quantity" placeholder="0" value={formData.quantity} onChange={handleChange} className={`${inputClass} text-center`} /></div>
                         <div className="w-[100px]"><label className={labelStyle}>Rate</label><input id="rate" placeholder="0.00" value={formData.rate} onChange={handleChange} className={`${inputClass} text-center`} /></div>
                         <div className="w-[80px]"><label className={labelStyle}>Tax %</label><input id="taxPercent" placeholder="0" value={formData.taxPercent} onChange={handleChange} className={`${inputClass} text-center`} /></div>
                         <div className="flex gap-2">
-                            <button type="submit" className={`w-20 py-3 rounded-lg shadow-md font-bold text-xl text-white transition-all active:scale-95 ${editingId ? 'bg-green-600' : 'bg-blue-700'}`}>
+                            <button type="submit" className={`w-20 py-3 rounded-lg shadow-md font-bold text-xl text-white transition-all active:scale-95 ${editingId ? 'bg-green-600' : 'bg-blue-500 hover:bg-blue-500'}`}>
                                 {editingId ? '✓' : '+'}
                             </button>
                             <button 
                                 type="button" 
                                 onClick={handleDownloadPDF} 
                                 disabled={submittedData.length === 0 || isGenerating}
-                                className={`w-20 py-3 rounded-lg shadow-md flex justify-center items-center text-lg transition-all ${submittedData.length === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-800 text-white hover:bg-black active:scale-95'}`}
-                            >
+                                className={`w-20 py-3 rounded-lg shadow-md flex justify-center items-center text-lg transition-all ${
+  submittedData.length === 0 
+    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+    : 'bg-zinc-400 text-white hover:bg-zinc-400 active:scale-95'
+}`}>
                                 📥
                             </button>
                         </div>
                     </div>
                 </form>
 
-                <div className="mt-10 overflow-hidden border border-gray-100 rounded-t-xl">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50/80 border-b border-gray-100">
-                            <tr className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                <div className="w-full overflow-x-auto border-t border-b border-gray-100">
+    <table className="w-full text-left border-collapse min-w-[600px]">
+                        <thead className="bg-gray-50/80 border-b border-gray-200">
+                            <tr className=" text-[13px] font-bold uppercase tracking-wider">
                                 <th className="px-6 py-4">Date</th>
                                 <th className="px-6 py-4">Item</th>
                                 <th className="px-6 py-4 text-center">Qty</th>
@@ -217,20 +257,20 @@ const Add: React.FC = () => {
                                 <th className="px-6 py-4 text-center action-hide">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50 text-gray-700 text-sm">
+                        <tbody className="divide-y divide-gray-100 text-gray-700 text-sm font-medium">
                             {submittedData.length === 0 ? (
-                                <tr><td colSpan={6} className="py-20 text-center text-gray-400 italic">No entries added to the list yet.</td></tr>
+                                <tr><td colSpan={6} className="py-20 text-center text-gray-400 italic font-normal">No items added yet.</td></tr>
                             ) : (
                                 submittedData.map((row) => (
                                     <tr key={row.id}>
                                         <td className="px-6 py-4 text-gray-400">{row.date}</td>
-                                        <td className="px-6 py-4 font-bold text-gray-800 uppercase">{row.item}</td>
+                                        <td className="px-6 py-4 tracking-tight">{row.item}</td>
                                         <td className="px-6 py-4 text-center">{row.quantity}</td>
                                         <td className="px-6 py-4 text-center">₹{row.rate.toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center font-bold text-blue-700">₹{row.total.toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center action-hide space-x-4">
-                                            <button onClick={() => handleEdit(row)} className="text-blue-500 text-lg">✎</button>
-                                            <button onClick={() => setSubmittedData(prev => prev.filter(i => i.id !== row.id))} className="text-red-500 text-lg">🗑️</button>
+                                            <button onClick={() => handleEdit(row)} className="text-red-500 text-lg transition-transform active:scale-75">✎</button>
+                                            <button onClick={() => setSubmittedData(prev => prev.filter(i => i.id !== row.id))} className="text-red-500 text-lg transition-transform active:scale-75">🗑️</button>
                                         </td>
                                     </tr>
                                 ))
@@ -239,16 +279,16 @@ const Add: React.FC = () => {
                     </table>
                 </div>
 
-                <div className="border-x border-b border-gray-100 rounded-b-xl overflow-hidden mb-10">
+                <div className="border-x border-b border-gray-200 rounded-b-xl overflow-hidden mb-10">
                     <table className="w-full border-collapse">
                         <tbody>
-                            <tr className="border-t border-gray-100">
-                                <td className="px-6 py-3 text-right font-bold text-[13px] text-gray-800 bg-gray-50 uppercase tracking-tighter">Subtotal</td>
-                                <td className="w-40 px-6 py-3 text-right font-medium text-[13px] text-gray-800 border-l border-gray-100">₹{subtotal.toFixed(2)}</td>
+                            <tr className="border-t border-gray-200">
+                                <td className="px-6 py-3.5 text-right font-bold text-[13px] text-gray-800 bg-gray-50/50 uppercase tracking-tighter">Subtotal</td>
+                                <td className="w-40 px-6 py-3.5 text-right font-semibold text-[13px] text-gray-800 border-l border-gray-200 bg-white">₹{subtotal.toFixed(2)}</td>
                             </tr>
                             <tr className="border-t border-gray-200">
-                                <td className="px-6 py-3 text-right font-bold text-[13px] text-gray-800 bg-gray-50 uppercase tracking-tighter">Tax</td>
-                                <td className="w-40 px-6 py-3 text-right font-medium text-[13px] text-gray-800 border-l border-gray-100">₹{totalTax.toFixed(2)}</td>
+                                <td className="px-6 py-3.5 text-right font-bold text-[13px] text-gray-800 bg-gray-50/50 uppercase tracking-tighter">Tax</td>
+                                <td className="w-40 px-6 py-3.5 text-right font-semibold text-[13px] text-gray-800 border-l border-gray-200 bg-white">₹{totalTax.toFixed(2)}</td>
                             </tr>
                             <tr className="bg-blue-50/60 border-t border-gray-200">
                                 <td className="px-6 py-4 text-right font-bold text-[13px] text-gray-900 uppercase tracking-tight">Total Amount Due</td>
