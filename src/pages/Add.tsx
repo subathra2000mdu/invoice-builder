@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
+import { useNavigate } from 'react-router';
 
 export interface InvoiceItem {
     id: number;
@@ -16,6 +17,7 @@ const Add: React.FC = () => {
     const invoiceRef = useRef<HTMLDivElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [todayDate, setTodayDate] = useState("");
+     const navigate = useNavigate();
     
 
     const [formData, setFormData] = useState({
@@ -189,7 +191,7 @@ const Add: React.FC = () => {
                         >
                             Reset
                         </button>
-                        <button onClick={() => window.history.back()} className="cursor-pointer flex-1 sm:flex-none bg-orange-700 hover:bg-orange-800 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95">Home</button>
+                        <button onClick={() => navigate('/')}  className="cursor-pointer flex-1 sm:flex-none bg-orange-700 hover:bg-orange-800 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95">Home</button>
                     </div>
                 </div>
 

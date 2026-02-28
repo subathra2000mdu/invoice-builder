@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router";
 
 const Home: React.FC = () => {
+    const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-100">
 
@@ -19,7 +21,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <button  onClick={() => window.location.href = '/add'} className=" cursor-pointer w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg shadow-md transition">
+          <button onClick={() => navigate('/add')}  className=" cursor-pointer w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg shadow-md transition">
             Get Started - Create Your Invoice
           </button>
         </div>
