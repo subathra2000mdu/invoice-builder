@@ -17,10 +17,11 @@ const Add: React.FC = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [todayDate, setTodayDate] = useState("");
     
+
     const [formData, setFormData] = useState({
         name: '', invoiceNumber: '', phoneNumber: '',
-        description: '', 
-        item: '', quantity: '', rate: '', taxPercent: '', 
+        description: '',
+        item: '', quantity: '', rate: '', taxPercent: '',
     });
 
     const [error, setError] = useState<string | null>(null);
@@ -105,7 +106,7 @@ const Add: React.FC = () => {
                     });
                 }
             });
-            
+
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -128,7 +129,7 @@ const Add: React.FC = () => {
         if (id === 'phoneNumber') {
             if (value !== '' && !/^\d+$/.test(value)) return;
             if (value.length > 10) return;
-            
+
             // Validation Logic: Show error if not exactly 10 digits
             if (value.length > 0 && value.length < 10) {
                 setError("Phone number must be exactly 10 digits");
@@ -148,7 +149,7 @@ const Add: React.FC = () => {
     const handleAction = (e: FormEvent) => {
         e.preventDefault();
 
-        // Submission Guard: Check phone length
+        
         if (formData.phoneNumber.length !== 10) {
             setError("Phone number must be exactly 10 digits");
             return;
@@ -175,20 +176,20 @@ const Add: React.FC = () => {
     return (
         <div className="min-h-screen bg-blue-50/50 font-sans py-8 px-4 sm:px-6">
             <div ref={invoiceRef} className="max-w-6xl mx-auto bg-white rounded-2xl shadow-xl border border-blue-100/50 p-6 sm:p-10">
-                
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Invoice Builder</h2>
                         <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest">{formData.invoiceNumber}</p>
                     </div>
                     <div className="flex gap-3 action-hide w-full sm:w-auto">
-                        <button 
-  onClick={handleReset} 
-  className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95"
->
-  Reset
-</button>
-<button onClick={() => window.history.back()} className="flex-1 sm:flex-none bg-orange-700 hover:bg-orange-800 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95">Back</button>
+                        <button
+                            onClick={handleReset}
+                            className="cursor-pointer flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95"
+                        >
+                            Reset
+                        </button>
+                        <button onClick={() => window.history.back()} className="cursor-pointer flex-1 sm:flex-none bg-orange-700 hover:bg-orange-800 text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase transition shadow-md active:scale-95">Home</button>
                     </div>
                 </div>
 
@@ -198,17 +199,16 @@ const Add: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div><label className={labelStyle}>Client Name</label><input id="name" value={formData.name} onChange={handleChange} className={inputClass} required placeholder='Enter Name...' /></div>
                         <div><label className={labelStyle}>Invoice No</label><input value={formData.invoiceNumber} readOnly className={`${inputClass} bg-gray-50/50 text-gray-400 cursor-not-allowed`} /></div>
-                        
-                        {/* Phone Number Field with Error Message */}
+
                         <div>
                             <label className={labelStyle}>Phone Number</label>
-                            <input 
-                                id="phoneNumber" 
-                                value={formData.phoneNumber} 
-                                onChange={handleChange} 
-                                className={`${inputClass} ${error ? 'border-red-500 focus:ring-red-500/10' : 'focus:ring-blue-700/10'}`} 
-                                placeholder="1234567890" 
-                                required 
+                            <input
+                                id="phoneNumber"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className={`${inputClass} ${error ? 'border-red-500 focus:ring-red-500/10' : 'focus:ring-blue-700/10'}`}
+                                placeholder="1234567890"
+                                required
                             />
                             {error && <p className="text-[11px] text-red-500 mt-1 font-medium">{error}</p>}
                         </div>
@@ -227,18 +227,17 @@ const Add: React.FC = () => {
                         <div className="w-[100px]"><label className={labelStyle}>Rate</label><input id="rate" placeholder="0.00" value={formData.rate} onChange={handleChange} className={`${inputClass} text-center`} /></div>
                         <div className="w-[80px]"><label className={labelStyle}>Tax %</label><input id="taxPercent" placeholder="0" value={formData.taxPercent} onChange={handleChange} className={`${inputClass} text-center`} /></div>
                         <div className="flex gap-2">
-                            <button type="submit" className={`w-20 py-3 rounded-lg shadow-md font-bold text-xl text-white transition-all active:scale-95 ${editingId ? 'bg-green-600' : 'bg-blue-500 hover:bg-blue-500'}`}>
+                            <button type="submit" className={`cursor-pointer w-20 py-3 rounded-lg shadow-md font-bold text-xl text-white transition-all active:scale-95 ${editingId ? 'bg-green-600' : 'bg-blue-500 hover:bg-blue-500'}`}>
                                 {editingId ? '✓' : '+'}
                             </button>
-                            <button 
-                                type="button" 
-                                onClick={handleDownloadPDF} 
+                            <button
+                                type="button"
+                                onClick={handleDownloadPDF}
                                 disabled={submittedData.length === 0 || isGenerating}
-                                className={`w-20 py-3 rounded-lg shadow-md flex justify-center items-center text-lg transition-all ${
-  submittedData.length === 0 
-    ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
-    : 'bg-zinc-400 text-white hover:bg-zinc-400 active:scale-95'
-}`}>
+                                className={`w-20 py-3 rounded-lg shadow-md flex justify-center items-center text-lg transition-all ${submittedData.length === 0
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        : 'cursor-pointer bg-zinc-400 text-white hover:bg-zinc-400 active:scale-95'
+                                    }`}>
                                 📥
                             </button>
                         </div>
@@ -246,7 +245,7 @@ const Add: React.FC = () => {
                 </form>
 
                 <div className="w-full overflow-x-auto border-t border-b border-gray-100">
-    <table className="w-full text-left border-collapse min-w-[600px]">
+                    <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead className="bg-gray-50/80 border-b border-gray-200">
                             <tr className=" text-[13px] font-bold uppercase tracking-wider">
                                 <th className="px-6 py-4">Date</th>
@@ -269,8 +268,8 @@ const Add: React.FC = () => {
                                         <td className="px-6 py-4 text-center">₹{row.rate.toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center font-bold text-blue-700">₹{row.total.toFixed(2)}</td>
                                         <td className="px-6 py-4 text-center action-hide space-x-4">
-                                            <button onClick={() => handleEdit(row)} className="text-red-500 text-lg transition-transform active:scale-75">✎</button>
-                                            <button onClick={() => setSubmittedData(prev => prev.filter(i => i.id !== row.id))} className="text-red-500 text-lg transition-transform active:scale-75">🗑️</button>
+                                            <button onClick={() => handleEdit(row)} className="text-red-500 text-lg transition-transform active:scale-75 cursor-pointer">✎</button>
+                                            <button onClick={() => setSubmittedData(prev => prev.filter(i => i.id !== row.id))} className="cursor-pointer text-red-500 text-lg transition-transform active:scale-75">🗑️</button>
                                         </td>
                                     </tr>
                                 ))

@@ -19,7 +19,7 @@ const Home: React.FC = () => {
             </p>
           </div>
 
-          <button  onClick={() => window.location.href = '/add'} className="w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg shadow-md transition">
+          <button  onClick={() => window.location.href = '/add'} className=" cursor-pointer w-full sm:w-auto bg-blue-700 hover:bg-blue-800 text-white px-5 py-3 rounded-lg shadow-md transition">
             Get Started - Create Your Invoice
           </button>
         </div>
